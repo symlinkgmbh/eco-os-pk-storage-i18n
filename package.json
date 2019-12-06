@@ -1,6 +1,6 @@
 {
   "name": "@symlinkde/eco-os-pk-storage-i18n",
-  "version": "0.0.19",
+  "version": "0.0.20",
   "description": "Package containing storage adapter for i18n service.",
   "types": "lib/index.d.ts",
   "main": "lib/index.js",

@@ -17,27 +17,30 @@
 
 
 
-import { STORAGE_TYPES, storageContainer } from "@symlinkde/eco-os-pk-storage";
+import { STORAGE_TYPES, storageContainer, AbstractBindings } from "@symlinkde/eco-os-pk-storage";
 import { PkStorageI18n, PkStorage } from "@symlinkde/eco-os-pk-models";
 import { bootstrapperContainer } from "@symlinkde/eco-os-pk-core";
 import Config from "config";
 import { injectable } from "inversify";
 
 @injectable()
-export class LocaleService implements PkStorageI18n.ILocaleService {
+export class LocaleService extends AbstractBindings implements PkStorageI18n.ILocaleService {
   private localeRepro: PkStorage.IMongoRepository<PkStorageI18n.ILocaleStorageEntry>;
 
   public constructor() {
-    storageContainer.bind(STORAGE_TYPES.Collection).toConstantValue(Config.get("mongo.collection"));
-    storageContainer.bind(STORAGE_TYPES.Database).toConstantValue(Config.get("mongo.db"));
-    storageContainer.bind(STORAGE_TYPES.StorageTarget).toConstantValue("SECONDLOCK_MONGO_LOCALE_DATA");
-    storageContainer
-      .bind(STORAGE_TYPES.IndexConfig)
-      .toConstantValue({ name: "locale_index", fields: [{ locale: 1, key: 1 }] });
-    storageContainer
-      .bind(STORAGE_TYPES.SECONDLOCK_REGISTRY_URI)
-      .toConstantValue(bootstrapperContainer.get("SECONDLOCK_REGISTRY_URI"));
-    this.localeRepro = storageContainer.getTagged<PkStorage.IMongoRepository<PkStorageI18n.ILocaleStorageEntry>>(
+    super(storageContainer);
+
+    this.initDynamicBinding(
+      [STORAGE_TYPES.Database, STORAGE_TYPES.Collection, STORAGE_TYPES.StorageTarget],
+      [Config.get("mongo.db"), Config.get("mongo.collection"), "SECONDLOCK_MONGO_LOCALE_DATA"],
+    );
+
+    this.initStaticBinding(
+      [STORAGE_TYPES.SECONDLOCK_REGISTRY_URI, STORAGE_TYPES.IndexConfig],
+      [bootstrapperContainer.get("SECONDLOCK_REGISTRY_URI"), { name: "locale_index", fields: [{ locale: 1, key: 1 }] }],
+    );
+
+    this.localeRepro = this.getContainer().getTagged<PkStorage.IMongoRepository<PkStorageI18n.ILocaleStorageEntry>>(
       STORAGE_TYPES.IMongoRepository,
       STORAGE_TYPES.EXTEND_CONFIG,
       true,
